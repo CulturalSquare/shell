@@ -24,9 +24,10 @@ var textMessage = null;
 function setup() {
   createBgImage();
   var shellImage = null;
+  shellImages = shellImages.shuffle();
   for (var i = shellImages.length - 1; i >= 0; i--) {
     shellImage = shellImages[i];
-    createShellSprite(shellImage, Math.floor(Math.random() * 800) , Math.floor(Math.random() * 600));
+    createShellSprite(shellImage, initPositions[i][0] ,initPositions[i][1]);
   };
   // 渲染中间的 label
   textMessage = createShellMessage(['...', '0']);
@@ -109,7 +110,6 @@ function onDragStart(event) {
   // store a reference to the data
   // the reason for this is because of multitouch
   // we want to track the movement of this particular touch
-  console.log(this.img);
   this.data = event.data;
   this.alpha = 0.5;
   this.dragging = true;
@@ -120,10 +120,16 @@ function onDragEnd() {
   this.dragging = false;
   // set the interaction data to null
   this.data = null;
-  console.log(textMessage.m);
+  console.log(this.img);
   // console.log(textMessage.x, textMessage.y. textMessage.width, textMessage.height);
   if (this.collision) {
     console.log('collision:', this.img[1]);
+    if (this.img[1] == textMessage.m[1]) {
+      alert('success');
+    }
+    else {
+      alert('fail');
+    }
   }
 }
 

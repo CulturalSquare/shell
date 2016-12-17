@@ -36,3 +36,5 @@ var shellMessages = [
 
 // 背景图片
 var backgroundImage = 'res/img/bg.jpg';
+
+var initPositions = initPosition(windowSize.width, windowSize.height);
