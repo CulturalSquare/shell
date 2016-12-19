@@ -79,7 +79,7 @@ function updateShellMessage(shell_message) {
 function createShellMessage(shell_message) {
   var m = new PIXI.Text(
     shell_message[0], {
-      font: 'bold 40px Arial', 
+      font: 'bold 80px TianZhen', 
       fill: '#cc00ff', 
       align: 'center', 
       stroke: '#FFFFFF', 
