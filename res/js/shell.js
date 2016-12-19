@@ -1,4 +1,5 @@
 var Container = PIXI.Container,
+  DisplayObjectContainer = PIXI.DisplayObjectContainer,
   autoDetectRenderer = PIXI.autoDetectRenderer,
   loader = PIXI.loader,
   resources = PIXI.loader.resources,
@@ -8,18 +9,29 @@ var Container = PIXI.Container,
 //Create a Pixi stage and renderer and add the 
 //renderer.view to the DOM
 var stage = new Container(),
+    bgContainer = new DisplayObjectContainer(),
   renderer = autoDetectRenderer(windowSize.width, windowSize.height);
+renderer.view.style.position = "absolute"
+renderer.view.style.width = window.innerWidth + "px";
+renderer.view.style.height = window.innerHeight + "px";
+renderer.view.style.display = "block";
+
+stage.addChild(bgContainer);
+
 document.body.appendChild(renderer.view);
 
+
 //Use Pixi's built-in `loader` module to load an image
-  
 var images = shellImages.map(function(e) {return e[0];});
 images.push(backgroundImage);
+images.push('res/img/displacement_map.jpg');
+images.push('res/img/zeldaWaves.png');
 
 // load image resourse
 loader.add(distinct(images)).load(setup);
 
-var textMessage = null;
+var textMessage, displacementFilter, displacementTexture,
+  bgOverlay, count = 0;
 
 function setup() {
   createBgImage();
@@ -37,10 +49,25 @@ function setup() {
   requestAnimationFrame(animate);
 }
 
-
+// 背景图
 function createBgImage() {
-  var background = new PIXI.Sprite(resources[backgroundImage].texture);
-  stage.addChild(background);
+  var background = new Sprite(resources[backgroundImage].texture);
+  bgContainer.addChild(background);
+  background.width = window.innerWidth;
+  background.height = window.innerHeight;
+  
+  bgOverlay = new PIXI.TilingSprite(PIXI.Texture.fromImage("res/img/zeldaWaves.png"), windowSize.width, windowSize.height);
+  bgContainer.addChild(bgOverlay);
+  bgOverlay.alpha = 0.1;
+
+  displacementTexture = new Sprite(resources['res/img/displacement_map.jpg'].texture);
+
+  displacementFilter = new PIXI.filters.DisplacementFilter(displacementTexture, 50);
+  displacementFilter.scale.x = 50;
+  displacementFilter.scale.y = 50;
+  // var blurFilter = new PIXI.filters.BlurFilter();
+  // var noiseFilter = new PIXI.filters.NoiseFilter();
+  bgContainer.filters = [displacementFilter];
 }
 
 // 更新 文本信息
@@ -101,9 +128,18 @@ function createShellSprite(img, x, y) {
 }
 
 function animate() {
-  requestAnimationFrame(animate);
+  count += 0.1;
+  var blurAmount = Math.cos(count);
+
+  bgOverlay.tilePosition.x = count * -10 // blurAmount * 40;
+  bgOverlay.tilePosition.y = count * -10
+
+  // displacementFilter.offset.x = count * 10 // blurAmount * 40;
+  // displacementFilter.offset.y = count * 10
+
   // render the stage
   renderer.render(stage);
+  requestAnimationFrame(animate);
 }
 
 function onDragStart(event) {
