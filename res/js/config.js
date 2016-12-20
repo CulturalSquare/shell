@@ -4,6 +4,13 @@ var windowSize = {
 	height: 600
 };
 
+var screenSize = {
+	width: window.screen.width,
+	height: window.screen.height
+};
+
+windowSize = screenSize;
+
 var shellScale = 3;
 
 // 图片路径，贝壳名字

@@ -12,8 +12,8 @@ var stage = new Container(),
     bgContainer = new DisplayObjectContainer(),
   renderer = autoDetectRenderer(windowSize.width, windowSize.height);
 renderer.view.style.position = "absolute"
-renderer.view.style.width = window.innerWidth + "px";
-renderer.view.style.height = window.innerHeight + "px";
+renderer.view.style.width = screenSize.width + "px";
+renderer.view.style.height = screenSize.height + "px";
 renderer.view.style.display = "block";
 
 stage.addChild(bgContainer);
