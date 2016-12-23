@@ -73,17 +73,22 @@ function hitTestRectangle(r1, r2) {
 };
 
 
-function initPosition(width, height) {
-	return [
-		[0.5 * width, 0.2 * height],
-		[0.7 * width, 0.3 * height],
-		[0.8 * width, 0.4 * height],
-		[0.8 * width, 0.6 * height],
-		[0.7 * width, 0.7 * height],
-		[0.5 * width, 0.8 * height],
-		[0.3 * width, 0.7 * height],
-		[0.2 * width, 0.6 * height],
-		[0.2 * width, 0.4 * height],
-		[0.3 * width, 0.3 * height],
-	];
-}
+function randomShells(shell, n) {
+  n --;
+  var shells = [];
+  window.shellTypes.map(function(e) {
+    e.shells.map(function(i) {
+      if (i.img != shell.img) {
+        shells.push(i);
+      }
+    });
+  });
+  // console.log(shells);
+  shells.sort(function() {return 0.5 - Math.random()});
+  // console.log(shells);
+  shells = shells.slice(0, n);
+  shells = shells.concat(shell);
+  // console.log(shells);
+  // 重排
+  return shells.sort(function() {return 0.5 - Math.random()});
+};
