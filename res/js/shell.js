@@ -9,8 +9,12 @@ var Container = PIXI.Container,
 //Create a Pixi stage and renderer and add the 
 //renderer.view to the DOM
 var stage = new Container(),
-    bgContainer = new DisplayObjectContainer(),
-  renderer = autoDetectRenderer(windowSize.width, windowSize.height);
+  bgContainer = new DisplayObjectContainer(), // 背景效果
+  // indexScene = new Container(), // 首页屏保场景
+  // shellScene = new Container(), // 贝壳场景，18 个贝壳选择其中的一个，开始游戏
+  // selectScene = new Container(), // 游戏选择场景，从随机的贝壳中选中正确的一个
+  renderer = autoDetectRenderer(screenSize.width, screenSize.height);
+
 renderer.view.style.position = "absolute"
 renderer.view.style.width = screenSize.width + "px";
 renderer.view.style.height = screenSize.height + "px";
@@ -20,33 +24,109 @@ stage.addChild(bgContainer);
 
 document.body.appendChild(renderer.view);
 
-
 //Use Pixi's built-in `loader` module to load an image
-var images = shellImages.map(function(e) {return e[0];});
-images.push(backgroundImage);
-images.push('res/img/displacement_map.jpg');
-images.push('res/img/zeldaWaves.png');
+var images_resource = [];
+window.shellTypes.map(function(e) {
+  images_resource = images_resource.concat(e.shells.map(function(s) { return s.img; }))
+});
+// 添加背景特效资源
+images_resource = images_resource.concat([backgroundImage, 'res/img/displacement_map.jpg', 'res/img/zeldaWaves.png'])
 
 // load image resourse
-loader.add(distinct(images)).load(setup);
+loader.add(distinct(images_resource)).load(setup);
+
+// 每一个分类为一个 Container，便于统一动画处理。
+var shellTypeContainers = [];
 
 var textMessage, displacementFilter, displacementTexture,
   bgOverlay, count = 0;
 
 function setup() {
-  createBgImage();
-  var shellImage = null;
-  shellImages = shellImages.shuffle();
-  for (var i = shellImages.length - 1; i >= 0; i--) {
-    shellImage = shellImages[i];
-    createShellSprite(shellImage, initPositions[i][0] ,initPositions[i][1]);
-  };
-  // 渲染中间的 label
-  textMessage = createShellMessage(['...', '0']);
-  // TODO，每次随机一个
-  updateShellMessage(shellMessages.randomOne());
+  // 创建背景
+  bgContainer = createBgImage();
+
+  shellTypeContainers = createShellTypeContainers();
   // 渲染游戏
   requestAnimationFrame(animate);
+}
+
+function createShellTypeContainers() {
+  var typeContainers = [];
+  for (var i = 0; i < window.shellTypes.length; i++) {
+    var c = new Container();
+    // 添加到场景中
+    stage.addChild(c);
+
+    c.width = window.screenSize.width;
+    c.height = window.screenSize.height / 3;
+    c.position.set(0, window.screenSize.height / 3 * i);
+
+    typeContainers.push(c);
+    // 创建贝壳类型的标签
+    createTypeNameLabel(c, window.shellTypes[i]);
+    // 显示 贝壳图片
+    createShells(c, window.shellTypes[i].shells);
+    
+  };
+}
+
+
+function createShells(c, shells) {
+  for (var i = 0; i < shells.length; i++) {
+    var x = window.screenSize.width / 7 * (i + 1);
+    var y = window.screenSize.height / 5;
+    // create our little bunny friend..
+    var s = new PIXI.Sprite(resources[shells[i].img].texture);
+    // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
+    s.interactive = true;
+    // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
+    s.buttonMode = true;
+    // center the bunny's anchor point
+    s.anchor.set(0.5);
+    // make it a bit bigger, so it's easier to grab
+    s.scale.set(0.35);
+    s.position.set(x, y);
+    // s 添加鼠标事件
+    // events for drag start
+    s.on('mousedown', onDragStart)
+      .on('touchstart', onDragStart)
+      // events for drag end
+      .on('mouseup', onDragEnd)
+      .on('mouseupoutside', onDragEnd)
+      .on('touchend', onDragEnd)
+      .on('touchendoutside', onDragEnd)
+      // events for drag move
+      .on('mousemove', onDragMove)
+      .on('touchmove', onDragMove);
+    var m = new PIXI.Text(
+    shells[i].name, {
+      font: 'bold 40px TianZhen', 
+      fill: '#fff', 
+      align: 'center', 
+      // stroke: '#fff', 
+      // strokeThickness: 1 
+    });
+    m.anchor.set(0.5);
+    m.position.set(x, y + 90);
+    c.addChild(m);
+
+    c.addChild(s);
+  };
+}
+
+
+function createTypeNameLabel(c, type) {
+  var m = new PIXI.Text(
+    type.name, {
+      font: 'bold 55px TianZhen', 
+      fill: '#cc00ff', 
+      align: 'center', 
+      stroke: '#FFFFFF', 
+      strokeThickness: 1 
+    });
+  m.anchor.set(0.5);
+  m.position.set(window.screenSize.width / 2, window.screenSize.height / 3 / 5);
+  c.addChild(m);
 }
 
 // 背景图
@@ -68,13 +148,14 @@ function createBgImage() {
   // var blurFilter = new PIXI.filters.BlurFilter();
   // var noiseFilter = new PIXI.filters.NoiseFilter();
   bgContainer.filters = [displacementFilter];
+  return bgContainer;
 }
 
 // 更新 文本信息
-function updateShellMessage(shell_message) {
-  textMessage.text = shell_message[0];
-  textMessage.m = shell_message;
-}
+// function updateShellMessage(shell_message) {
+//   textMessage.text = shell_message[0];
+//   textMessage.m = shell_message;
+// }
 
 function createShellMessage(shell_message) {
   var m = new PIXI.Text(
@@ -94,38 +175,38 @@ function createShellMessage(shell_message) {
 }
 
 
-function createShellSprite(img, x, y) {
-  // create our little bunny friend..
-  var shell = new PIXI.Sprite(resources[img[0]].texture);
-  // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
-  shell.interactive = true;
-  // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
-  shell.buttonMode = true;
-  // center the bunny's anchor point
-  shell.anchor.set(0.5);
-  // make it a bit bigger, so it's easier to grab
-  shell.scale.set(3);
-  // setup events
-  shell
-      // events for drag start
-      .on('mousedown', onDragStart)
-      .on('touchstart', onDragStart)
-      // events for drag end
-      .on('mouseup', onDragEnd)
-      .on('mouseupoutside', onDragEnd)
-      .on('touchend', onDragEnd)
-      .on('touchendoutside', onDragEnd)
-      // events for drag move
-      .on('mousemove', onDragMove)
-      .on('touchmove', onDragMove);
+// function createShellSprite(img, x, y) {
+//   // create our little bunny friend..
+//   var shell = new PIXI.Sprite(resources[img[0]].texture);
+//   // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
+//   shell.interactive = true;
+//   // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
+//   shell.buttonMode = true;
+//   // center the bunny's anchor point
+//   shell.anchor.set(0.5);
+//   // make it a bit bigger, so it's easier to grab
+//   shell.scale.set(3);
+//   // setup events
+//   shell
+//       // events for drag start
+//       .on('mousedown', onDragStart)
+//       .on('touchstart', onDragStart)
+//       // events for drag end
+//       .on('mouseup', onDragEnd)
+//       .on('mouseupoutside', onDragEnd)
+//       .on('touchend', onDragEnd)
+//       .on('touchendoutside', onDragEnd)
+//       // events for drag move
+//       .on('mousemove', onDragMove)
+//       .on('touchmove', onDragMove);
 
-  // move the sprite to its designated position
-  shell.position.x = x;
-  shell.position.y = y;
-  shell.img = img
-  // add it to the stage
-  stage.addChild(shell);
-}
+//   // move the sprite to its designated position
+//   shell.position.x = x;
+//   shell.position.y = y;
+//   shell.img = img
+//   // add it to the stage
+//   stage.addChild(shell);
+// }
 
 function animate() {
   count += 0.1;
