@@ -206,15 +206,18 @@ function createSelectContainer(shell, randomShells) {
       strokeThickness: 1 
     });
   m.anchor.set(0.5, 0.5);
-  m.position.set(window.screenSize.width / 2, window.screenSize.height / 6);
+  // m.position.set(window.screenSize.width / 2, window.screenSize.height / 6);
+  m.position.set(window.screenSize.width / 2, window.screenSize.height / 2);
   selectScene.addChild(m);
 
   // console.log(randomShells);
 
   // 随机摆放需要被猜的贝壳
   for (var i = 0; i < randomShells.length; i++) {
-    var x = window.screenSize.width / 6 * (i % 5 + 1);
-    var y = window.screenSize.height / 4 * (2 + Math.floor(i / 5));
+    // var x = window.screenSize.width / 6 * (i % 5 + 1);
+    // var y = window.screenSize.height / 4 * (2 + Math.floor(i / 5));
+    var x = initPositions[i][0];
+    var y = initPositions[i][1];
     var s = new PIXI.Sprite(resources[randomShells[i].img].texture);
     selectScene.addChild(s);
     s.interactive = true;
@@ -223,25 +226,20 @@ function createSelectContainer(shell, randomShells) {
     s.scale.set(0.25);
     s.position.set(x, y);
     // s 添加鼠标事件
-    // events for drag start
-    s.on('mousedown', function(event) {
-        this.alpha = 0.5;
-      }).on('mouseup', function() {
-        this.alpha = 1;
-        console.log('选中：', this.m);
-        // 点击之后，切换到游戏场景
-        if (this.m.img === shell.img) {
-          // 猜对
-          gotoSuccessScene(shell);
-        }
-        else {
-          gotoFailScene(shell);
-        }
-      }).on('mouseout', function() {
-        this.alpha = 1;
-      });
-
     s.m = randomShells[i];
+    s.t = shell;
+    s.mm = m;
+    s.on('mousedown', onDragStart)
+      .on('touchstart', onDragStart)
+      // events for drag end
+      .on('mouseup', onDragEnd)
+      .on('mouseupoutside', onDragEnd)
+      .on('touchend', onDragEnd)
+      .on('touchendoutside', onDragEnd)
+      // events for drag move
+      .on('mousemove', onDragMove)
+      .on('touchmove', onDragMove);
+
     // 一些动作
     var action = new PIXI.action.Repeat(
       new PIXI.action.Sequence([
@@ -277,7 +275,6 @@ function createShells(c, shells) {
         this.alpha = 0.5;
       }).on('mouseup', function() {
         this.alpha = 1;
-        console.log(this.m);
         // 点击之后，切换到游戏场景
         gotoSelectScene(this.m);
       }).on('mouseout', function() {
@@ -333,7 +330,7 @@ function createBgImage() {
   background.width = window.innerWidth;
   background.height = window.innerHeight;
   
-  bgOverlay = new PIXI.TilingSprite(PIXI.Texture.fromImage("res/img/zeldaWaves.png"), windowSize.width, windowSize.height);
+  bgOverlay = new PIXI.TilingSprite(PIXI.Texture.fromImage("res/img/zeldaWaves.png"), window.screenSize.width, window.screenSize.height);
   bgContainer.addChild(bgOverlay);
   bgOverlay.alpha = 0.1;
 
@@ -361,14 +358,43 @@ function animate() {
   PIXI.actionManager.update();
 }
 
-// function onDragStart(event) {
-//   this.data = event.data;
-//   this.alpha = 0.5;
-// }
 
-// function onDragEnd() {
-//   this.alpha = 1;
-//   this.data = null;
-//   console.log(this.m);
-//   PIXI.actionManager.runAction(shellScene, new PIXI.action.FadeOut(0.5));
-// }
+function onDragStart(event) {
+  this.data = event.data;
+  this.alpha = 0.5;
+  this.dragging = true;
+}
+
+function onDragEnd() {
+  this.alpha = 1;
+  this.dragging = false;
+  // set the interaction data to null
+  this.data = null;
+  if (this.collision) {
+    if (this.m.img === this.t.img) {
+      // 成功
+      gotoSuccessScene(this.t);
+    }
+    else {
+      gotoFailScene(this.t);
+    }
+  }
+}
+
+function onDragMove() {
+  if (this.dragging) {
+    var newPosition = this.data.getLocalPosition(this.parent);
+    this.position.x = newPosition.x;
+    this.position.y = newPosition.y;
+
+    // 碰撞检测
+    this.collision = hitTestRectangle(this, this.mm);
+
+    if (this.collision) {
+      this.mm.alpha = 0.5;
+    }
+    else {
+      this.mm.alpha = 1;
+    }
+  }
+}
