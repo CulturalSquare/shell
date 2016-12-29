@@ -239,7 +239,6 @@ function createSelectContainer(shell, randomShells) {
       // events for drag move
       .on('mousemove', onDragMove)
       .on('touchmove', onDragMove);
-
     // 一些动作
     var action = new PIXI.action.Repeat(
       new PIXI.action.Sequence([
@@ -273,11 +272,24 @@ function createShells(c, shells) {
     // events for drag start
     s.on('mousedown', function(event) {
         this.alpha = 0.5;
-      }).on('mouseup', function() {
+      })
+     .on('touchstart', function(event) {
+        this.alpha = 0.5;
+      })
+     .on('mouseup', function() {
         this.alpha = 1;
         // 点击之后，切换到游戏场景
         gotoSelectScene(this.m);
-      }).on('mouseout', function() {
+      })
+     .on('touchend', function() {
+        this.alpha = 1;
+        // 点击之后，切换到游戏场景
+        gotoSelectScene(this.m);
+      })
+     .on('touchendoutside', function() {
+        this.alpha = 1;
+      })
+     .on('mouseout', function() {
         this.alpha = 1;
       });
 
