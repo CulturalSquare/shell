@@ -40,15 +40,15 @@ backBtn.alpha = 0;
 backBtn.position.set(window.screenSize.width - 30, window.screenSize.height - 30);
 backBtn.interactive = true;
 backBtn.buttonMode = true;
+// backBtn.on('mousedown', function(event) {
+//   this.alpha = 0.5;
+// }).on('mouseup', function() {
+//   this.alpha = 1;
+//   gotoShellScene();
+// }).on('mouseout', function() {
+//   this.alpha = 1;
+// });
 backBtn.on('mousedown', function(event) {
-  this.alpha = 0.5;
-}).on('mouseup', function() {
-  this.alpha = 1;
-  gotoShellScene();
-}).on('mouseout', function() {
-  this.alpha = 1;
-});
-backBtns.on('mousedown', function(event) {
     this.alpha = 0.5;
   })
   .on('touchstart', function(event) {
