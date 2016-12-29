@@ -56,9 +56,11 @@ backBtn.on('mousedown', function(event) {
   })
   .on('mouseup', function() {
     this.alpha = 1;
+    gotoShellScene();
   })
   .on('touchend', function() {
     this.alpha = 1;
+    gotoShellScene();
   })
   .on('mouseout', function() {
     this.alpha = 1;
