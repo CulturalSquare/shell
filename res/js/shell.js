@@ -40,14 +40,6 @@ backBtn.alpha = 0;
 backBtn.position.set(window.screenSize.width - 30, window.screenSize.height - 30);
 backBtn.interactive = true;
 backBtn.buttonMode = true;
-// backBtn.on('mousedown', function(event) {
-//   this.alpha = 0.5;
-// }).on('mouseup', function() {
-//   this.alpha = 1;
-//   gotoShellScene();
-// }).on('mouseout', function() {
-//   this.alpha = 1;
-// });
 backBtn.on('mousedown', function(event) {
     this.alpha = 0.5;
   })
@@ -288,6 +280,8 @@ function createShells(c, shells) {
     // make it a bit bigger, so it's easier to grab
     s.scale.set(0.25);
     s.position.set(x, y);
+    s.start_x = s.x;
+    s.start_y = s.y;
     // s 添加鼠标事件
     // events for drag start
     s.on('mousedown', function(event) {
@@ -395,6 +389,8 @@ function onDragStart(event) {
   this.data = event.data;
   this.alpha = 0.5;
   this.dragging = true;
+  this.start_x = this.x;
+  this.start_y = this.y;
 }
 
 function onDragEnd() {
@@ -408,7 +404,11 @@ function onDragEnd() {
       gotoSuccessScene(this.t);
     }
     else {
-      gotoFailScene(this.t);
+      // 动画返回位置
+      this.mm.alpha = 1;
+      // gotoFailScene(this.t);
+      var actionBack = new PIXI.action.MoveTo(this.start_x, this.start_y, 0.1);
+      PIXI.actionManager.runAction(this, actionBack);
     }
   }
 }
