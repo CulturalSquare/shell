@@ -7,10 +7,11 @@ var Container = PIXI.Container,
   Sprite = PIXI.Sprite;
 
 var currentScene = 'index'; // index, shell, select, success, fail
+var counterTimer = window.timeout;; // 30秒没有操作，跳回index 
 
 var stage = new Container(),
   bgContainer = new DisplayObjectContainer(), // 背景效果
-  indexScene = new Container(), // 首页屏保场景
+  indexScene = new DisplayObjectContainer(), // 首页屏保场景
   shellScene = new Container(), // 贝壳场景，18 个贝壳选择其中的一个，开始游戏
   selectScene = new Container(), // 游戏选择场景，从随机的贝壳中选中正确的一个
   successScene = new Container(), // 游戏成功场景
@@ -92,14 +93,31 @@ function setup() {
 
   // 创建背景
   bgContainer = createBgImage();
+  bgContainer.interactive = true;
+  bgContainer.buttonMode = true;
+  bgContainer.click = function(event) {
+    if (currentScene === 'index') gotoShellScene();
+  };
+
+  // 循环检查是否跳回首页
+  var backIndexAction = new PIXI.action.Repeat(
+    new PIXI.action.Sequence([
+      new PIXI.action.DelayTime(1),
+      new PIXI.action.CallFunc(function() {
+        if (counterTimer > 0) counterTimer --;
+        if (counterTimer <= 0) gotoIndexScene();
+      })
+    ])
+  );
+  PIXI.actionManager.runAction(bgContainer, backIndexAction);
+
   // 游戏首页
   // createIndexContainer();
   // 18 个贝壳场景
   shellTypeContainers = createShellTypeContainers();
   // 游戏选择场景
   // createSelectContainer();
-
-  requestAnimationFrame(animate);
+  animate();
 }
 
 function createIndexContainer() {
@@ -109,18 +127,15 @@ function createIndexContainer() {
   indexScene.height = window.screenSize.height;
 
   stage.addChild(indexScene);
-
-  indexScene.on('mousedown', function(event) {
-  }).on('mouseup', function() {
-    console.log('index -> shell');
+  indexScene.click = function(event) {
     gotoShellScene();
-  });
+  }
 }
 
 // 贝壳类型列表场景
 function createShellTypeContainers() {
   shellScene.alpha = 1;
-
+  shellScene.x = screenSize.width;// 隐藏
   var typeContainers = [];
   for (var i = 0; i < window.shellTypes.length; i++) {
     var c = new Container();
@@ -222,8 +237,6 @@ function createSelectContainer(shell, randomShells) {
   m.position.set(window.screenSize.width / 2, window.screenSize.height / 2);
   selectScene.addChild(m);
 
-  // console.log(randomShells);
-
   // 随机摆放需要被猜的贝壳
   for (var i = 0; i < randomShells.length; i++) {
     // var x = window.screenSize.width / 6 * (i % 5 + 1);
@@ -286,9 +299,11 @@ function createShells(c, shells) {
     // events for drag start
     s.on('mousedown', function(event) {
         this.alpha = 0.5;
+        counterTimer = window.timeout;
       })
      .on('touchstart', function(event) {
         this.alpha = 0.5;
+        counterTimer = window.timeout;
       })
      .on('mouseup', function() {
         this.alpha = 1;
@@ -302,9 +317,11 @@ function createShells(c, shells) {
       })
      .on('touchendoutside', function() {
         this.alpha = 1;
+        counterTimer = window.timeout;
       })
      .on('mouseout', function() {
         this.alpha = 1;
+        counterTimer = window.timeout;
       });
 
     s.m = shells[i];
@@ -386,6 +403,8 @@ function animate() {
 
 
 function onDragStart(event) {
+  counterTimer = window.timeout;
+
   this.data = event.data;
   this.alpha = 0.5;
   this.dragging = true;
@@ -394,6 +413,8 @@ function onDragStart(event) {
 }
 
 function onDragEnd() {
+  counterTimer = window.timeout;
+
   this.alpha = 1;
   this.dragging = false;
   // set the interaction data to null
@@ -414,6 +435,8 @@ function onDragEnd() {
 }
 
 function onDragMove() {
+  counterTimer = window.timeout;
+
   if (this.dragging) {
     var newPosition = this.data.getLocalPosition(this.parent);
     this.position.x = newPosition.x;

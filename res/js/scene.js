@@ -1,4 +1,5 @@
 function initScene() {
+  counterTimer = window.timeout;
 	if(selectScene) stage.removeChild(selectScene);
 	if(successScene) stage.removeChild(successScene);
 	if(failScene) stage.removeChild(failScene);
@@ -7,6 +8,7 @@ function initScene() {
 // 到游戏场景
 function gotoSelectScene(shell) {
 	initScene();
+  currentScene = 'select';
 	selectScene = createSelectContainer(shell, randomShells(shell, 10));
 
   PIXI.actionManager.runAction(shellScene, new PIXI.action.MoveTo(window.screenSize.width, 0, 0.5));
@@ -17,19 +19,21 @@ function gotoSelectScene(shell) {
 // 到贝壳场景
 function gotoShellScene() {
 	initScene();
-
+  currentScene = 'shell';
   PIXI.actionManager.runAction(shellScene, new PIXI.action.MoveTo(0, 0, 0.5));
   PIXI.actionManager.runAction(backBtn, new PIXI.action.FadeOut(0.5));
 }
 
 function gotoIndexScene() {
 	initScene();
-	console.log('gotoIndexScene');
+  currentScene = 'index';
+  PIXI.actionManager.runAction(shellScene, new PIXI.action.MoveTo(window.screenSize.width, 0, 0.5));
+  PIXI.actionManager.runAction(backBtn, new PIXI.action.FadeOut(0.5));
 }
 
 function gotoSuccessScene(shell) {
 	initScene();
-	console.log('gotoSuccessScene');
+	currentScene = 'success';
 	PIXI.actionManager.runAction(selectScene, new PIXI.action.FadeOut(0.1));
 
 	successScene = createSuccessContainer(shell);
@@ -38,7 +42,7 @@ function gotoSuccessScene(shell) {
 
 function gotoFailScene(shell) {
 	initScene();
-	console.log('gotoFailScene');
+	currentScene = 'fail';
 	PIXI.actionManager.runAction(selectScene, new PIXI.action.FadeOut(0.1));
 
 	failScene = createFailContainer(shell);

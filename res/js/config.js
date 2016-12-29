@@ -88,3 +88,5 @@ var shellTypes = [{
 var backgroundImage = 'res/img/bg.jpg';
 
 var initPositions = initPosition(screenSize.width, screenSize.height);
+
+var timeout = 60;
