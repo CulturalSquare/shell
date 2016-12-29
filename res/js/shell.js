@@ -48,6 +48,24 @@ backBtn.on('mousedown', function(event) {
 }).on('mouseout', function() {
   this.alpha = 1;
 });
+backBtns.on('mousedown', function(event) {
+    this.alpha = 0.5;
+  })
+  .on('touchstart', function(event) {
+    this.alpha = 0.5;
+  })
+  .on('mouseup', function() {
+    this.alpha = 1;
+  })
+  .on('touchend', function() {
+    this.alpha = 1;
+  })
+  .on('mouseout', function() {
+    this.alpha = 1;
+  })
+  .on('touchendoutside', function() {
+    this.alpha = 1;
+  });
 
 stage.addChild(backBtn);
 
