@@ -17,28 +17,6 @@ var shellScale = 3;
 // 贝壳key，类别名字
 var shellTypes = [{
 	prefix: '1',
-	name: '淡水贝类',
-	shells: [{
-		name: '三角帆蚌',
-		img: 'res/img/1_1.png'
-	}, {
-		name: '法国大蜗牛',
-		img: 'res/img/1_2.png'
-	}, {
-		name: '中国圆田螺',
-		img: 'res/img/1_3.png'
-	}, {
-		name: '江蚬',
-		img: 'res/img/1_4.png'
-	}, {
-		name: '花带羊角螺',
-		img: 'res/img/1_5.png'
-	}, {
-		name: '褶纹冠蚌',
-		img: 'res/img/1_6.png'
-	}]
-}, {
-	prefix: '2',
 	name: '食用腹足类',
 	shells: [{
 		name: '螺纹鲍螺',
@@ -60,7 +38,7 @@ var shellTypes = [{
 		img: 'res/img/2_6.png'
 	}]
 }, {
-	prefix: '3',
+	prefix: '2',
 	name: '食用双壳类',
 	shells: [{
 		name: '厚壳海扇蛤',
@@ -81,6 +59,28 @@ var shellTypes = [{
 		name: '厚壳贻贝',
 		img: 'res/img/3_6.png'
 	}]
+}, {
+	prefix: '3',
+	name: '食用陆贝和淡贝',
+	shells: [{
+		name: '三角帆蚌',
+		img: 'res/img/1_1.png'
+	}, {
+		name: '法国大蜗牛',
+		img: 'res/img/1_2.png'
+	}, {
+		name: '中国圆田螺',
+		img: 'res/img/1_3.png'
+	}, {
+		name: '江蚬',
+		img: 'res/img/1_4.png'
+	}, {
+		name: '花带羊角螺',
+		img: 'res/img/1_5.png'
+	}, {
+		name: '褶纹冠蚌',
+		img: 'res/img/1_6.png'
+	}]
 }];
 
 
@@ -90,3 +90,5 @@ var backgroundImage = 'res/img/bg.jpg';
 var initPositions = initPosition(screenSize.width, screenSize.height);
 
 var timeout = 60;
+
+var font = 'TianZhen';

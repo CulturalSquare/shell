@@ -27,42 +27,60 @@ renderer.view.style.display = "block";
 
 stage.addChild(bgContainer);
 
-// 返回按钮
+var typeContainers = [];
+var shellTypesLable = [];
+
+// 重新选择
 var backBtn = new PIXI.Text(
-  '返回重新选择', {
-    font: 'bold 30px TianZhen', 
+  '返回上层', {
+    font: '30px ' + window.font, 
     fill: '#fff', 
-    align: 'center', 
-    // stroke: '#fff', 
-    // strokeThickness: 1 
+    align: 'center',
   });
-backBtn.anchor.set(1, 1);
+backBtn.anchor.set(1, 0);
 backBtn.alpha = 0;
+backBtn.rotation = Math.PI / 2;
 backBtn.position.set(window.screenSize.width - 30, window.screenSize.height - 30);
 backBtn.interactive = true;
 backBtn.buttonMode = true;
 backBtn.on('mousedown', function(event) {
-    this.alpha = 0.5;
-  })
-  .on('touchstart', function(event) {
-    this.alpha = 0.5;
-  })
-  .on('mouseup', function() {
+  this.alpha = 0.5;
+}).on('mouseup', function() {
+  if (currentScene === 'shell') {
     this.alpha = 1;
+    showShellTypes();
+  } else {
     gotoShellScene();
-  })
-  .on('touchend', function() {
-    this.alpha = 1;
-    gotoShellScene();
-  })
-  .on('mouseout', function() {
-    this.alpha = 1;
-  })
-  .on('touchendoutside', function() {
-    this.alpha = 1;
-  });
-
+    showShellTypes();
+  }
+}).on('mouseout', function() {
+  // this.alpha = 1;
+});
 stage.addChild(backBtn);
+
+// 重新首页
+var backIndexBtn = new PIXI.Text(
+  '页首回返', {
+    font: '30px ' + window.font, 
+    fill: '#fff', 
+    align: 'center',
+  });
+backIndexBtn.anchor.set(0, 0);
+backIndexBtn.alpha = 0;
+backIndexBtn.rotation = -Math.PI / 2;
+backIndexBtn.position.set(30, window.screenSize.height - 30);
+backIndexBtn.interactive = true;
+backIndexBtn.buttonMode = true;
+backIndexBtn.on('mousedown', function(event) {
+  this.alpha = 0.5;
+}).on('mouseup', function() {
+  this.alpha = 1;
+  gotoIndexScene();
+}).on('mouseout', function() {
+  // this.alpha = 1;
+});
+
+stage.addChild(backIndexBtn);
 
 document.body.appendChild(renderer.view);
 
@@ -80,7 +98,7 @@ images_resource = images_resource.concat(
 loader.add(distinct(images_resource)).load(setup);
 
 // 每一个分类为一个 Container，便于统一动画处理。
-var shellTypeContainers = [];
+// var shellTypeContainers = [];
 
 var textMessage, displacementFilter, displacementTexture,
   bgOverlay, count = 0;
@@ -112,19 +130,32 @@ function setup() {
   PIXI.actionManager.runAction(bgContainer, backIndexAction);
 
   // 游戏首页
-  // createIndexContainer();
+  createIndexContainer();
+  // gotoIndexScene();
   // 18 个贝壳场景
-  shellTypeContainers = createShellTypeContainers();
+  createShellTypeContainers();
   // 游戏选择场景
   // createSelectContainer();
   animate();
 }
 
 function createIndexContainer() {
+  if(indexScene) stage.removeChild(indexScene);
+  indexScene = new DisplayObjectContainer();
   indexScene.interactive = true;
   indexScene.buttonMode = true;
   indexScene.width = window.screenSize.width;
   indexScene.height = window.screenSize.height;
+
+  var m = new PIXI.Text(
+    '贝类游戏', {
+      font: 'bold 200px ' + window.font, 
+      fill: '#d02323', 
+      align: 'center', 
+    });
+    m.anchor.set(0.5);
+    m.position.set(window.screenSize.width / 2, window.screenSize.height / 2);
+    indexScene.addChild(m);
 
   stage.addChild(indexScene);
   indexScene.click = function(event) {
@@ -136,165 +167,63 @@ function createIndexContainer() {
 function createShellTypeContainers() {
   shellScene.alpha = 1;
   shellScene.x = screenSize.width;// 隐藏
-  var typeContainers = [];
   for (var i = 0; i < window.shellTypes.length; i++) {
-    var c = new Container();
-    // 添加到场景中
+    var type = window.shellTypes[i];
+
+    var m = new PIXI.Text(
+    type.name, {
+      font: 'bold 60px ' + window.font, 
+      fill: '#d02323',
+      align: 'center', 
+      fontWeight: 'bold',
+    });
+    m.interactive = true;
+    m.buttonMode = true;
+    m.anchor.set(0.5, 0.5);
+    m._index = i;
+    m._x = window.screenSize.width / 6 * (i * 2 + 1);
+    m._y = window.screenSize.height / 3;
+    m.position.set(window.screenSize.width / 6 * (i * 2 + 1), window.screenSize.height / 3);
+    m.on('mousedown', function(event) {
+      this.alpha = 0.5;
+    }).on('mouseup', function() {
+      // do something
+      this.alpha = 1;
+      showTypeShells(type, this._index);
+    }).on('mouseout', function() {
+      this.alpha = 1;
+    });
+
+    shellScene.addChild(m);
+    shellTypesLable.push(m)
+
+    var c = createShells(type.shells);
     shellScene.addChild(c);
-
-    c.width = window.screenSize.width;
-    c.height = window.screenSize.height / 3;
-    c.position.set(0, window.screenSize.height / 3 * i);
-
+    // PIXI.actionManager.runAction(c, new PIXI.action.MoveTo(0, 0, 0.8));
     typeContainers.push(c);
-    // 创建贝壳类型的标签
-    createTypeNameLabel(c, window.shellTypes[i]);
-    // 显示 贝壳图片
-    createShells(c, window.shellTypes[i].shells);
   };
   stage.addChild(shellScene);
 }
 
-
-function createSuccessContainer(shell) {
-  if(successScene) stage.removeChild(successScene);
-  successScene = new Container();
-  stage.addChild(successScene);
-
-  successScene.position.set(0, 0);
-  successScene.scale.set(0);
-
-  var m = new PIXI.Text(
-    '恭喜你，答对了', {
-      font: '100px TianZhen', 
-      fill: '#ffff00', 
-      align: 'center', 
-      // stroke: '#31a131', 
-      // strokeThickness: 1 
-    });
-  m.anchor.set(0.5, 0.5);
-  m.position.set(window.screenSize.width / 2, window.screenSize.height / 6);
-  successScene.addChild(m);
-
-  var s = new PIXI.Sprite(resources[shell.img].texture);
-  successScene.addChild(s);
-  s.anchor.set(0.5);
-  s.scale.set(0.5);
-  s.position.set(window.screenSize.width / 2, window.screenSize.height / 2);
-
-  return successScene
-}
-
-
-function createFailContainer(shell) {
-  if(failScene) stage.removeChild(failScene);
-  failScene = new Container();
-  stage.addChild(failScene);
-
-  failScene.position.set(0, 0);
-  failScene.alpha = 0;
-
-  var m = new PIXI.Text(
-    '很遗憾，答错了', {
-      font: '100px TianZhen', 
-      fill: '#e543e5', 
-      align: 'center', 
-      // stroke: '#e543e5',
-      // strokeThickness: 1 
-    });
-  m.anchor.set(0.5, 0.5);
-  m.position.set(window.screenSize.width / 2, window.screenSize.height / 6);
-  failScene.addChild(m);
-
-  var s = new PIXI.Sprite(resources[shell.img].texture);
-  failScene.addChild(s);
-  s.anchor.set(0.5);
-  s.scale.set(0.5);
-  s.position.set(window.screenSize.width / 2, window.screenSize.height / 2);
-
-  return failScene
-}
-
-
-// 游戏的界面
-function createSelectContainer(shell, randomShells) {
-  if(selectScene) stage.removeChild(selectScene);
-  selectScene = new Container();
-  stage.addChild(selectScene);
-
-  selectScene.position.set(-window.screenSize.width, 0);
-  selectScene.alpha = 1;
-  var m = new PIXI.Text(
-    shell.name, {
-      font: 'bold 80px TianZhen', 
-      fill: '#cc00ff', 
-      align: 'center', 
-      stroke: '#FFFFFF', 
-      strokeThickness: 1 
-    });
-  m.anchor.set(0.5, 0.5);
-  // m.position.set(window.screenSize.width / 2, window.screenSize.height / 6);
-  m.position.set(window.screenSize.width / 2, window.screenSize.height / 2);
-  selectScene.addChild(m);
-
-  // 随机摆放需要被猜的贝壳
-  for (var i = 0; i < randomShells.length; i++) {
-    // var x = window.screenSize.width / 6 * (i % 5 + 1);
-    // var y = window.screenSize.height / 4 * (2 + Math.floor(i / 5));
-    var x = initPositions[i][0];
-    var y = initPositions[i][1];
-    var s = new PIXI.Sprite(resources[randomShells[i].img].texture);
-    selectScene.addChild(s);
-    s.interactive = true;
-    s.buttonMode = true;
-    s.anchor.set(0.5);
-    s.scale.set(0.25);
-    s.position.set(x, y);
-    // s 添加鼠标事件
-    s.m = randomShells[i];
-    s.t = shell;
-    s.mm = m;
-    s.on('mousedown', onDragStart)
-      .on('touchstart', onDragStart)
-      // events for drag end
-      .on('mouseup', onDragEnd)
-      .on('mouseupoutside', onDragEnd)
-      .on('touchend', onDragEnd)
-      .on('touchendoutside', onDragEnd)
-      // events for drag move
-      .on('mousemove', onDragMove)
-      .on('touchmove', onDragMove);
-    // 一些动作
-    var action = new PIXI.action.Repeat(
-      new PIXI.action.Sequence([
-        new PIXI.action.DelayTime(Math.random()),
-        new PIXI.action.ScaleBy(0.01, 0.01, 0.5),
-        new PIXI.action.ScaleBy(-0.01, -0.01, 0.5),
-      ])
-    );
-    PIXI.actionManager.runAction(s, action);
-  }
-  return selectScene;
-}
-
-
-function createShells(c, shells) {
+function createShells(shells) {
+  var c = new Container();
+  c.position.set(0, window.screenSize.height);
   for (var i = 0; i < shells.length; i++) {
-    var x = window.screenSize.width / 7 * (i + 1);
-    var y = window.screenSize.height / 5;
+    // var ox = window.screenSize.width / 7 * (i + 1);
+    // var oy = window.screenSize.height / 3 * 2;
     // create our little bunny friend..
     var s = new PIXI.Sprite(resources[shells[i].img].texture);
+    // s.ox = ox;
+    // s.oy = oy;
     // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
     s.interactive = true;
     // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
     s.buttonMode = true;
     // center the bunny's anchor point
-    s.anchor.set(0.5);
+    s.anchor.set(0.5, 0);
     // make it a bit bigger, so it's easier to grab
     s.scale.set(0.25);
-    s.position.set(x, y);
-    s.start_x = s.x;
-    s.start_y = s.y;
+    s.position.set(window.screenSize.width / 7 * (i + 1), 0);
     // s 添加鼠标事件
     // events for drag start
     s.on('mousedown', function(event) {
@@ -337,29 +266,166 @@ function createShells(c, shells) {
 
     var m = new PIXI.Text(
     shells[i].name, {
-      font: 'bold 30px TianZhen', 
+      font: 'bold 40px ' + window.font, 
       fill: '#fff', 
       align: 'center', 
-      // stroke: '#fff', 
-      // strokeThickness: 1 
     });
     m.anchor.set(0.5);
-    m.position.set(x, y + 70);
+    m.position.set(s.x, s.y + 140);
     c.addChild(m);
 
     c.addChild(s);
   };
+  return c;
+}
+
+
+function showTypeShells(shellType, index) {
+  var hide_shell_action = new PIXI.action.MoveTo(0, window.screenSize.height, 0.2);
+  var show_shell_action = new PIXI.action.MoveTo(0, window.screenSize.height / 2, 0.3);
+
+  var show_type_action = new PIXI.action.MoveTo(window.screenSize.width / 2, window.screenSize.height / 4, 0.3);
+  for (var i = 0; i < typeContainers.length; i++) {
+    var shell_action = hide_shell_action;
+    var type_action = new PIXI.action.MoveTo(shellTypesLable[i].x, -100, 0.1);;
+    if (i === index) { 
+      shell_action = show_shell_action;
+      type_action = show_type_action;
+    }
+    PIXI.actionManager.runAction(typeContainers[i], shell_action);
+    PIXI.actionManager.runAction(shellTypesLable[i], type_action);
+  }
+}
+
+function showShellTypes() {
+  var hide_shell_action = new PIXI.action.MoveTo(0, window.screenSize.height, 0.2);
+
+  for (var i = 0; i < typeContainers.length; i++) {
+    PIXI.actionManager.runAction(typeContainers[i], hide_shell_action);
+    PIXI.actionManager.runAction(shellTypesLable[i], new PIXI.action.MoveTo(shellTypesLable[i]._x, shellTypesLable[i]._y, 0.2));
+  }
+}
+
+function createSuccessContainer(shell) {
+  if(successScene) stage.removeChild(successScene);
+  successScene = new Container();
+  stage.addChild(successScene);
+  successScene.position.set(0, 0);
+
+  var m = new PIXI.Text(
+    '恭喜你 答对了', {
+      font: '200px ' + window.font, 
+      fill: '#d02323', 
+      align: 'center', 
+    });
+  m.anchor.set(0.5, 0.5);
+  m.scale.set(0.1);
+  m.position.set(window.screenSize.width / 2, window.screenSize.height / 3 * 2);
+  successScene.addChild(m);
+
+  var s = new PIXI.Sprite(resources[shell.img].texture);
+  successScene.addChild(s);
+  s.anchor.set(0.5);
+  s.scale.set(0.09);
+  s.position.set(window.screenSize.width / 2, window.screenSize.height / 4);
+
+  return successScene
+}
+
+
+function createFailContainer(shell) {
+}
+
+
+// 游戏的界面
+function createSelectContainer(shell, randomShells) {
+  if(selectScene) {
+    stage.removeChild(selectScene);
+    // g.removeChildren();
+  }
+  selectScene = new Container();
+  stage.addChild(selectScene);
+
+  selectScene.position.set(-window.screenSize.width, 0);
+  selectScene.alpha = 1;
+  var m = new PIXI.Text(
+    shell.name, {
+      font: 'bold 100px ' + window.font, 
+      fill: '#d02323', 
+      align: 'center',
+    });
+  m.anchor.set(0.5, 0.5);
+  m.position.set(window.screenSize.width / 2, window.screenSize.height / 2);
+  
+
+  // 背景框
+  var g = new PIXI.Graphics();
+  g.beginFill(14867045, 0.3);
+  var w = 520, h = 200;
+  var rect = g.drawRoundedRect(window.screenSize.width / 2 - w / 2, window.screenSize.height / 2 - h / 2 + 25, w, h, 50);
+  g.endFill();
+  selectScene.addChild(rect);
+  selectScene.addChild(m);
+
+  var ttm = new PIXI.Text(
+    '请将贝壳移到此处', {
+      font: 'bold 40px ' + window.font, 
+      fill: '#fff', 
+      align: 'center', 
+    });
+  ttm.anchor.set(0.5, 0.5);
+  ttm.position.set(window.screenSize.width / 2, window.screenSize.height / 2 + 70);
+  selectScene.addChild(ttm);
+
+  // 随机摆放需要被猜的贝壳
+  for (var i = 0; i < randomShells.length; i++) {
+    // var x = window.screenSize.width / 6 * (i % 5 + 1);
+    // var y = window.screenSize.height / 4 * (2 + Math.floor(i / 5));
+    var x = initPositions[i][0];
+    var y = initPositions[i][1];
+    var s = new PIXI.Sprite(resources[randomShells[i].img].texture);
+    selectScene.addChild(s);
+    s.interactive = true;
+    s.buttonMode = true;
+    s.anchor.set(0.5);
+    s.scale.set(0.25);
+    s.position.set(x, y);
+    // s 添加鼠标事件
+    s.m = randomShells[i];
+    s.t = shell;
+    s.mm = m;
+    s.on('mousedown', onDragStart)
+      .on('touchstart', onDragStart)
+      // events for drag end
+      .on('mouseup', onDragEnd)
+      .on('mouseupoutside', onDragEnd)
+      .on('touchend', onDragEnd)
+      .on('touchendoutside', onDragEnd)
+      // events for drag move
+      .on('mousemove', onDragMove)
+      .on('touchmove', onDragMove);
+    // 一些动作
+    var action = new PIXI.action.Repeat(
+      new PIXI.action.Sequence([
+        new PIXI.action.DelayTime(Math.random()),
+        new PIXI.action.ScaleBy(0.01, 0.01, 0.5),
+        new PIXI.action.ScaleBy(-0.01, -0.01, 0.5),
+      ])
+    );
+    PIXI.actionManager.runAction(s, action);
+  }
+  return selectScene;
 }
 
 // 18 贝壳页面，类型的标签
 function createTypeNameLabel(c, type) {
   var m = new PIXI.Text(
     type.name, {
-      font: 'bold 50px TianZhen', 
+      font: 'bold 50px ' + window.font, 
       fill: '#cc00ff', 
       align: 'center', 
-      stroke: '#FFFFFF', 
-      strokeThickness: 1 
+      // stroke: '#FFFFFF', 
+      // strokeThickness: 1 
     });
   m.anchor.set(0, 0.5);
   m.position.set(window.screenSize.width / 7, window.screenSize.height / 3 / 5);
@@ -423,15 +489,14 @@ function onDragEnd() {
     if (this.m.img === this.t.img) {
       // 成功
       gotoSuccessScene(this.t);
-    }
-    else {
-      // 动画返回位置
-      this.mm.alpha = 1;
-      // gotoFailScene(this.t);
-      var actionBack = new PIXI.action.MoveTo(this.start_x, this.start_y, 0.1);
-      PIXI.actionManager.runAction(this, actionBack);
+      return;
     }
   }
+  // 动画返回位置
+  this.mm.alpha = 1;
+  // gotoFailScene(this.t);
+  var actionBack = new PIXI.action.MoveTo(this.start_x, this.start_y, 0.1);
+  PIXI.actionManager.runAction(this, actionBack);
 }
 
 function onDragMove() {

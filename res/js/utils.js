@@ -141,15 +141,15 @@ function hitTestRectangle(r1, r2) {
 
 function initPosition(width, height) {
   return [
-    [0.5 * width, 0.2 * height],
-    [0.7 * width, 0.3 * height],
-    [0.8 * width, 0.4 * height],
-    [0.8 * width, 0.6 * height],
-    [0.7 * width, 0.7 * height],
-    [0.5 * width, 0.8 * height],
-    [0.3 * width, 0.7 * height],
-    [0.2 * width, 0.6 * height],
-    [0.2 * width, 0.4 * height],
-    [0.3 * width, 0.3 * height],
+    [0.5 * width, 0.15 * height],
+    [0.75 * width, 0.2 * height],
+    [0.85 * width, 0.35 * height],
+    [0.85 * width, 0.65 * height],
+    [0.75 * width, 0.8 * height],
+    [0.5 * width, 0.85 * height],
+    [0.25 * width, 0.8 * height],
+    [0.1 * width, 0.65 * height],
+    [0.1 * width, 0.35 * height],
+    [0.25 * width, 0.2 * height],
   ];
 }
