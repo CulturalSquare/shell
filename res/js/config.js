@@ -61,7 +61,7 @@ var shellTypes = [{
 	}]
 }, {
 	prefix: '3',
-	name: '食用陆贝和淡贝',
+	name: '食用陆贝和氮贝',
 	shells: [{
 		name: '三角帆蚌',
 		img: 'res/img/1_1.png'

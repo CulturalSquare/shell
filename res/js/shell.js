@@ -37,9 +37,9 @@ var backBtn = new PIXI.Text(
     fill: '#fff', 
     align: 'center',
   });
-backBtn.anchor.set(1, 0);
+backBtn.anchor.set(1, 1);
 backBtn.alpha = 0;
-backBtn.rotation = Math.PI / 2;
+// backBtn.rotation = Math.PI / 2;
 backBtn.position.set(window.screenSize.width - 30, window.screenSize.height - 30);
 backBtn.interactive = true;
 backBtn.buttonMode = true;
@@ -60,14 +60,14 @@ stage.addChild(backBtn);
 
 // 重新首页
 var backIndexBtn = new PIXI.Text(
-  '页首回返', {
+  '返回首页', {
     font: '30px ' + window.font, 
     fill: '#fff', 
     align: 'center',
   });
-backIndexBtn.anchor.set(0, 0);
+backIndexBtn.anchor.set(0, 1);
 backIndexBtn.alpha = 0;
-backIndexBtn.rotation = -Math.PI / 2;
+// backIndexBtn.rotation = -Math.PI / 2;
 backIndexBtn.position.set(30, window.screenSize.height - 30);
 backIndexBtn.interactive = true;
 backIndexBtn.buttonMode = true;
@@ -75,6 +75,7 @@ backIndexBtn.on('mousedown', function(event) {
   this.alpha = 0.5;
 }).on('mouseup', function() {
   this.alpha = 1;
+  showShellTypes();
   gotoIndexScene();
 }).on('mouseout', function() {
   // this.alpha = 1;
